@@ -12,16 +12,6 @@
       padding: 20px;
       background-color: #f0f0f0;
     }
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Number Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
 
     .container {
       max-width: 600px;
@@ -31,31 +21,15 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            text-align: center;
-        }
 
     h1 {
       text-align: center;
     }
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
 
     label {
       display: block;
       margin: 10px 0 5px;
     }
-        .input-group {
-            margin-bottom: 20px;
-        }
 
     input,
     button {
@@ -65,11 +39,6 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
 
     button {
       background-color: #28a745;
@@ -77,43 +46,19 @@
       font-size: 16px;
       cursor: pointer;
     }
-        input[type="text"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
 
     button:hover {
       background-color: #218838;
     }
-        #numberOfCards button {
-            padding: 10px 20px;
-            margin: 5px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
 
     .result {
       margin-top: 20px;
     }
-        #numberOfCards button:hover {
-            background-color: #0056b3;
-        }
 
     .result ul {
       list-style-type: none;
       padding: 0;
     }
-        #results {
-            margin-top: 20px;
-            text-align: left;
-        }
 
     .result li {
       background-color: #e9ecef;
@@ -123,23 +68,7 @@
     }
   </style>
 </head>
-        .card-number {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #f1f1f1;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            font-size: 16px;
-        }
 
-        .copy-icon {
-            cursor: pointer;
-            color: #007bff;
-        }
-    </style>
-</head>
 <body>
   <div class="container">
     <h1>Card Number Generator</h1>
@@ -154,38 +83,8 @@
     <div class="result">
       <h2>Generated Card Numbers</h2>
       <ul id="cardList"></ul>
-    <div class="container">
-        <h1>Card Number Generator</h1>
-        <div class="input-group">
-            <label for="firstFourDigits">First 4 Digits:</label>
-            <input type="text" id="firstFourDigits" maxlength="4">
-        </div>
-        <div class="input-group">
-            <label for="numberOfCards">Number of Cards to Generate:</label>
-            <div id="numberOfCards">
-                <button onclick="generateCards(10)">10</button>
-                <button onclick="generateCards(20)">20</button>
-                <button onclick="generateCards(30)">30</button>
-                <button onclick="generateCards(40)">40</button>
-                <button onclick="generateCards(50)">50</button>
-            </div>
-        </div>
-        <div id="results"></div>
     </div>
   </div>
-    <script>
-        function luhnAlgorithm(base) {
-            let sum = 0;
-            for (let i = 0; i < base.length; i++) {
-                let digit = parseInt(base[i]);
-                if ((base.length - i) % 2 === 0) {
-                    digit *= 2;
-                    if (digit > 9) digit -= 9;
-                }
-                sum += digit;
-            }
-            return (10 - (sum % 10)) % 10;
-        }
 
   <script>
     function luhnCheck(cardNumber) {
@@ -198,13 +97,6 @@
           if (digit > 9) {
             digit -= 9;
           }
-        function generateCardNumber(firstFourDigits) {
-            let cardNumber = firstFourDigits;
-            while (cardNumber.length < 15) {
-                cardNumber += Math.floor(Math.random() * 10);
-            }
-            cardNumber += luhnAlgorithm(cardNumber);
-            return cardNumber.match(/.{1,4}/g).join(' ');
         }
         sum += digit;
         shouldDouble = !shouldDouble;
@@ -221,10 +113,6 @@
         let testCardNumber = cardNumber + i;
         if (luhnCheck(testCardNumber)) {
           return testCardNumber;
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard');
-            });
         }
       }
       return null;
@@ -245,31 +133,10 @@
           const li = document.createElement('li');
           li.textContent = cardNumber;
           cardList.appendChild(li);
-        function generateCards(quantity) {
-            const firstFourDigits = document.getElementById('firstFourDigits').value;
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-
-            if (firstFourDigits.length !== 4 || isNaN(firstFourDigits)) {
-                alert('Please enter exactly 4 numeric digits.');
-                return;
-            }
-
-            for (let i = 0; i < quantity; i++) {
-                const cardNumber = generateCardNumber(firstFourDigits);
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card-number';
-                cardElement.innerHTML = `
-                    <span>${cardNumber}</span>
-                    <span class="copy-icon" onclick="copyToClipboard('${cardNumber}')">&#128203;</span>
-                `;
-                resultsDiv.appendChild(cardElement);
-            }
         }
       }
     }
   </script>
-    </script>
 </body>
 
 </html>
