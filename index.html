@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Number Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+
+    input,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .result {
+      margin-top: 20px;
+    }
+
+    .result ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .result li {
+      background-color: #e9ecef;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Card Number Generator</h1>
+    <label for="firstFour">First 4 Digits:</label>
+    <input type="text" id="firstFour" maxlength="4" placeholder="e.g. 1234">
+
+    <label for="quantity">Number of Card Numbers:</label>
+    <input type="number" id="quantity" placeholder="e.g. 10">
+
+    <button onclick="generateCardNumbers()">Generate</button>
+
+    <div class="result">
+      <h2>Generated Card Numbers</h2>
+      <ul id="cardList"></ul>
+    </div>
+  </div>
+
+  <script>
+    function luhnCheck(cardNumber) {
+      let sum = 0;
+      let shouldDouble = false;
+      for (let i = cardNumber.length - 1; i >= 0; i--) {
+        let digit = parseInt(cardNumber.charAt(i));
+        if (shouldDouble) {
+          digit *= 2;
+          if (digit > 9) {
+            digit -= 9;
+          }
+        }
+        sum += digit;
+        shouldDouble = !shouldDouble;
+      }
+      return (sum % 10) === 0;
+    }
+
+    function generateCardNumber(firstFour) {
+      let cardNumber = firstFour;
+      while (cardNumber.length < 15) {
+        cardNumber += Math.floor(Math.random() * 10);
+      }
+      for (let i = 0; i <= 9; i++) {
+        let testCardNumber = cardNumber + i;
+        if (luhnCheck(testCardNumber)) {
+          return testCardNumber;
+        }
+      }
+      return null;
+    }
+
+    function generateCardNumbers() {
+      const firstFour = document.getElementById('firstFour').value;
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const cardList = document.getElementById('cardList');
+      cardList.innerHTML = '';
+      if (firstFour.length !== 4 || isNaN(quantity) || quantity <= 0) {
+        alert('Please enter valid inputs.');
+        return;
+      }
+      for (let i = 0; i < quantity; i++) {
+        const cardNumber = generateCardNumber(firstFour);
+        if (cardNumber) {
+          const li = document.createElement('li');
+          li.textContent = cardNumber;
+          cardList.appendChild(li);
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>
