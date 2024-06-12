@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Number Generator</title>
+    <title>Card Number Generator with BIN Data</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f5f5f5;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
-
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: white;
@@ -21,22 +20,30 @@
             border-radius: 10px;
             text-align: center;
         }
-
-        h1 {
+        h1, h2 {
             margin-bottom: 20px;
-            font-size: 24px;
         }
-
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
         .input-group {
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             margin-bottom: 10px;
             font-weight: bold;
         }
-
         input[type="text"] {
             width: calc(100% - 20px);
             padding: 10px;
@@ -45,7 +52,6 @@
             font-size: 16px;
             box-sizing: border-box;
         }
-
         #numberOfCards button {
             padding: 10px 20px;
             margin: 5px;
@@ -55,16 +61,13 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
         #numberOfCards button:hover {
             background-color: #0056b3;
         }
-
         #results {
             margin-top: 20px;
             text-align: left;
         }
-
         .card-number {
             display: flex;
             justify-content: space-between;
@@ -75,10 +78,19 @@
             border-radius: 5px;
             font-size: 16px;
         }
-
         .copy-icon {
             cursor: pointer;
             color: #007bff;
+        }
+        .icon {
+            cursor: pointer;
+            margin-right: 10px;
+            color: #007bff;
+        }
+        .bin-info {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -86,8 +98,9 @@
     <div class="container">
         <h1>Card Number Generator</h1>
         <div class="input-group">
-            <label for="firstFourDigits">First 4 Digits:</label>
-            <input type="text" id="firstFourDigits" maxlength="4">
+            <label for="firstFourDigits">First 6 Digits (BIN):</label>
+            <input type="text" id="firstFourDigits" maxlength="6" oninput="updateBinInfo()">
+            <span id="binInfo" class="bin-info"></span>
         </div>
         <div class="input-group">
             <label for="numberOfCards">Number of Cards to Generate:</label>
@@ -100,34 +113,116 @@
             </div>
         </div>
         <div id="results"></div>
+
+        <h2>Exclusive BINs</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>BIN</th>
+                    <th>Bank</th>
+                    <th>Country</th>
+                    <th>Type</th>
+                    <th>Rarity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="exclusiveBins">
+                <!-- Exclusive BINs will be populated here -->
+            </tbody>
+        </table>
+
+        <h2>Common BINs</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>BIN</th>
+                    <th>Bank</th>
+                    <th>Country</th>
+                    <th>Type</th>
+                    <th>Rarity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="commonBins">
+                <!-- Common BINs will be populated here -->
+            </tbody>
+        </table>
     </div>
     <script>
-        function luhnAlgorithm(base) {
-            let sum = 0;
-            for (let i = 0; i < base.length; i++) {
-                let digit = parseInt(base[i]);
-                if ((base.length - i) % 2 === 0) {
-                    digit *= 2;
-                    if (digit > 9) digit -= 9;
-                }
-                sum += digit;
+        const exclusiveBins = [
+            { bin: '435310', bank: 'ANZ', country: 'Australia', type: 'Visa', rarity: 'Exclusive' },
+            { bin: '453948', bank: 'Commonwealth Bank', country: 'Australia', type: 'Visa', rarity: 'Exclusive' },
+            { bin: '457756', bank: 'NAB', country: 'Australia', type: 'Visa', rarity: 'Exclusive' },
+            { bin: '465874', bank: 'Westpac', country: 'Australia', type: 'Visa', rarity: 'Exclusive' },
+            { bin: '512345', bank: 'Citibank', country: 'Australia', type: 'Mastercard', rarity: 'Exclusive' },
+            { bin: '520986', bank: 'ANZ', country: 'Australia', type: 'Mastercard', rarity: 'Exclusive' },
+            { bin: '521894', bank: 'Citibank', country: 'Australia', type: 'Mastercard', rarity: 'Exclusive' },
+            { bin: '540297', bank: 'Westpac', country: 'Australia', type: 'Mastercard', rarity: 'Exclusive' },
+            { bin: '543210', bank: 'NAB', country: 'Australia', type: 'Mastercard', rarity: 'Exclusive' }
+        ];
+
+        const commonBins = [
+            { bin: '443469', bank: 'Westpac', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '450606', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '450949', bank: 'Various Banks', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '451890', bank: 'Various Banks', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '455701', bank: 'NAB', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456004', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '456441', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '456443', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456444', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456450', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456462', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456468', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456469', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456471', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456472', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '456474', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '457356', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '458594', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '462239', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '462485', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '464579', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '472437', bank: 'ANI will pick up from where the response got cut off.
+
+```html
+            { bin: '472437', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '472660', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '472690', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '477361', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '486270', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '494052', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '494053', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '512576', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '514045', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '514813', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '516296', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '516310', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '516319', bank: 'ANZ', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '516320', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '516361', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '516390', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '519244', bank: 'ANZ', country: 'Australia', type: 'Debit', rarity: 'Common' },
+            { bin: '535316', bank: 'Commonwealth Bank of Australia', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '535318', bank: 'Commonwealth Bank of Australia', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '555005', bank: 'Commonwealth Bank of Australia', country: 'Australia', type: 'Credit', rarity: 'Common' },
+            { bin: '405221', bank: 'Commonwealth Bank of Australia', country: 'Australia', type: 'Credit', rarity: 'Common' }
+        ];
+
+        function updateBinInfo() {
+            const binInput = document.getElementById('firstFourDigits').value;
+            const binInfo = document.getElementById('binInfo');
+            let binDetail = exclusiveBins.concat(commonBins).find(bin => bin.bin.startsWith(binInput));
+            if (binDetail) {
+                binInfo.textContent = `${binDetail.bank} - ${binDetail.type}`;
+            } else {
+                binInfo.textContent = '';
             }
-            return (10 - (sum % 10)) % 10;
         }
 
-        function generateCardNumber(firstFourDigits) {
-            let cardNumber = firstFourDigits;
-            while (cardNumber.length < 15) {
-                cardNumber += Math.floor(Math.random() * 10);
-            }
-            cardNumber += luhnAlgorithm(cardNumber);
-            return cardNumber.match(/.{1,4}/g).join(' ');
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard');
-            });
+        function prefillBin(bin) {
+            document.getElementById('firstFourDigits').value = bin;
+            updateBinInfo();
         }
 
         function generateCards(quantity) {
@@ -135,8 +230,8 @@
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
 
-            if (firstFourDigits.length !== 4 || isNaN(firstFourDigits)) {
-                alert('Please enter exactly 4 numeric digits.');
+            if (firstFourDigits.length !== 6 || isNaN(firstFourDigits)) {
+                alert('Please enter exactly 6 numeric digits.');
                 return;
             }
 
@@ -151,6 +246,64 @@
                 resultsDiv.appendChild(cardElement);
             }
         }
+
+        function generateCardNumber(firstFourDigits) {
+            let cardNumber = firstFourDigits;
+            while (cardNumber.length < 15) {
+                cardNumber += Math.floor(Math.random() * 10);
+            }
+            cardNumber += luhnAlgorithm(cardNumber);
+            return cardNumber.match(/.{1,4}/g).join(' ');
+        }
+
+        function luhnAlgorithm(base) {
+            let sum = 0;
+            for (let i = 0; i < base.length; i++) {
+                let digit = parseInt(base[i]);
+                if ((base.length - i) % 2 === 0) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+            }
+            return (10 - (sum % 10)) % 10;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const exclusiveBinsTable = document.getElementById('exclusiveBins');
+            exclusiveBins.forEach(bin => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bin.bin}</td>
+                    <td>${bin.bank}</td>
+                    <td>${bin.country}</td>
+                    <td>${bin.type}</td>
+                    <td>${bin.rarity}</td>
+                    <td><span class="icon" onclick="prefillBin('${bin.bin}')">&#9998;</span></td>
+                `;
+                exclusiveBinsTable.appendChild(row);
+            });
+
+            const commonBinsTable = document.getElementById('commonBins');
+            commonBins.forEach(bin => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bin.bin}</td>
+                    <td>${bin.bank}</td>
+                    <td>${bin.country}</td>
+                    <td>${bin.type}</td>
+                    <td>${bin.rarity}</td>
+                    <td><span class="icon" onclick="prefillBin('${bin.bin}')">&#9998;</span></td>
+                `;
+                commonBinsTable.appendChild(row);
+            });
+        });
     </script>
 </body>
 </html>
